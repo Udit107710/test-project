@@ -2,12 +2,11 @@ import { Store } from "./store";
 import { WebhookEvent } from "./types";
 
 export function handleEvent(store: Store, event: WebhookEvent) {
-  // BUG: throws if deliveryId missing
   if (!event.deliveryId.length) throw new Error("missing deliveryId");
 
   if (event.name === "pull_request.opened" || event.name === "pull_request.synchronize") {
     const repo = event.payload.repository.full_name;
-    const prNumber = event.payload.pull_request.id; // BUG: wrong field
+    const prNumber = event.payload.pull_request.id;
     store.upsertJob({
       prNumber,
       repo,
@@ -30,7 +29,6 @@ export function handleEvent(store: Store, event: WebhookEvent) {
     const prNumber = event.payload.number;
     const existing = store.getJob(repo, prNumber);
 
-    // BUG: if no existing job, it silently does nothing
     if (existing) {
       store.upsertJob({
         ...existing,
@@ -41,6 +39,5 @@ export function handleEvent(store: Store, event: WebhookEvent) {
     return { status: 200, body: { ok: true } };
   }
 
-  // BUG: unknown events should not error
   return { status: 500, body: { error: "unknown event" } };
 }
